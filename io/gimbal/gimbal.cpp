@@ -14,7 +14,15 @@ Gimbal::Gimbal(const std::string & config_path)
 
   try {
     serial_.setPort(com_port);
+    serial_.setBaudrate(921600);
+    serial_.setFlowcontrol(serial::flowcontrol_none);
+    serial_.setParity(serial::parity_none);  //default is parity_none
+    serial_.setStopbits(serial::stopbits_one);
+    serial_.setBytesize(serial::eightbits);
+    serial::Timeout time_out = serial::Timeout::simpleTimeout(20);
+    serial_.setTimeout(time_out);
     serial_.open();
+    usleep(1000000); 
   } catch (const std::exception & e) {
     tools::logger()->error("[Gimbal] Failed to open serial: {}", e.what());
     exit(1);

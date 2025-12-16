@@ -46,8 +46,6 @@ struct __attribute__((packed)) VisionToGimbal
 
 static_assert(sizeof(VisionToGimbal) <= 64);
 
-
-
 enum class GimbalMode
 {
   IDLE,        // 空闲

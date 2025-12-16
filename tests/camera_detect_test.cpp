@@ -43,6 +43,7 @@ int main(int argc, char * argv[])
     std::list<auto_aim::Armor> armors;
 
     camera.read(img, timestamp);
+    cv::flip(img, img, 0);
 
     if (img.empty()) break;
 
