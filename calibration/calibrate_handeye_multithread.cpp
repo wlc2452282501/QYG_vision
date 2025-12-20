@@ -3,6 +3,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include <Eigen/Dense>  // 必须在opencv2/core/eigen.hpp上面
+#include <Eigen/Geometry>
 #include <algorithm>
 #include <future>
 #include <fstream>
@@ -296,7 +297,8 @@ void load_parallel(
 
 void print_yaml(
   const std::vector<double> & R_gimbal2imubody_data, const cv::Mat & R_camera2gimbal,
-  const cv::Mat & t_camera2gimbal, const Eigen::Vector3d & ypr)
+  const cv::Mat & t_camera2gimbal, const Eigen::Vector3d & ypr_rhr_zyx,
+  const Eigen::Vector3d & ypr_ccw_zyx, double theta_deg, const Eigen::Vector3d & axis)
 {
   YAML::Emitter result;
   std::vector<double> R_camera2gimbal_data(
@@ -310,7 +312,14 @@ void print_yaml(
   result << YAML::Newline;
   result << YAML::Newline;
   result << YAML::Comment(fmt::format(
-    "相机同理想情况的偏角: yaw{:.2f} pitch{:.2f} roll{:.2f} degree", ypr[0], ypr[1], ypr[2]));
+    "相机同理想情况的偏角(右手系 ZYX): yaw{:.2f} pitch{:.2f} roll{:.2f} degree",
+    ypr_rhr_zyx[0], ypr_rhr_zyx[1], ypr_rhr_zyx[2]));
+  result << YAML::Comment(fmt::format(
+    "相机同理想情况的偏角(云台逆时针为正): yaw{:.2f} pitch{:.2f} roll{:.2f} degree",
+    ypr_ccw_zyx[0], ypr_ccw_zyx[1], ypr_ccw_zyx[2]));
+  result << YAML::Comment(fmt::format(
+    "相机同理想情况的角轴: theta={:.2f} deg, axis=[{:.3f}, {:+.3f}, {:+.3f}]",
+    theta_deg, axis[0], axis[1], axis[2]));
   result << YAML::Key << "R_camera2gimbal";
   result << YAML::Value << YAML::Flow << R_camera2gimbal_data;
   result << YAML::Key << "t_camera2gimbal";
@@ -376,15 +385,28 @@ int main(int argc, char * argv[])
       R_gimbal2world_list, t_gimbal2world_list, rvecs, tvecs, R_camera2gimbal, t_camera2gimbal);
     t_camera2gimbal /= 1e3;  // mm to m
 
-    // 计算相机同理想情况的偏角
+    // 计算相机同理想情况的偏角（ZYX + 角轴 + 顺时针为正显示）
     Eigen::Matrix3d R_camera2gimbal_eigen;
     cv::cv2eigen(R_camera2gimbal, R_camera2gimbal_eigen);
     Eigen::Matrix3d R_gimbal2ideal{{0, -1, 0}, {0, 0, -1}, {1, 0, 0}};
     Eigen::Matrix3d R_camera2ideal = R_gimbal2ideal * R_camera2gimbal_eigen;
-    Eigen::Vector3d ypr = tools::eulers(R_camera2ideal, 1, 0, 2) * 57.3;  // degree
+    Eigen::Vector3d ypr_rhr_zyx = tools::eulers(R_camera2ideal, 2, 1, 0) * 57.3;  // RHR ZYX
+    Eigen::Vector3d ypr_ccw_zyx = ypr_rhr_zyx;  // 云台逆时针为正（与右手系一致）
+
+    Eigen::AngleAxisd aa(R_camera2ideal);
+    double theta_deg = aa.angle() * 57.29577951308232;  // 180/pi
+    Eigen::Vector3d axis = aa.axis();
+
+    fmt::print("[Summary] Camera→Ideal (RHR ZYX): Yaw={:.2f}°, Pitch={:.2f}°, Roll={:.2f}°\n",
+           ypr_rhr_zyx[0], ypr_rhr_zyx[1], ypr_rhr_zyx[2]);
+    fmt::print("[Summary] Camera→Ideal (CCW positive): Yaw={:.2f}°, Pitch={:.2f}°, Roll={:.2f}°\n",
+           ypr_ccw_zyx[0], ypr_ccw_zyx[1], ypr_ccw_zyx[2]);
+    fmt::print("[Summary] Camera→Ideal (Angle-Axis): theta={:.2f}°, axis=[{:.3f}, {:+.3f}, {:+.3f}]\n",
+           theta_deg, axis[0], axis[1], axis[2]);
 
     // 输出yaml
-    print_yaml(R_gimbal2imubody_data, R_camera2gimbal, t_camera2gimbal, ypr);
+    print_yaml(R_gimbal2imubody_data, R_camera2gimbal, t_camera2gimbal,
+           ypr_rhr_zyx, ypr_ccw_zyx, theta_deg, axis);
 
   } catch (const std::exception & e) {
     fmt::print("Fatal error: {}\n", e.what());
