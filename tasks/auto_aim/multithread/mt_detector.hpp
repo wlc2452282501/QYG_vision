@@ -26,6 +26,7 @@ public:
 
   std::tuple<cv::Mat, std::list<Armor>, std::chrono::steady_clock::time_point> debug_pop();
 
+
 private:
   ov::Core core_;
   ov::CompiledModel compiled_model_;
@@ -33,7 +34,7 @@ private:
   YOLO yolo_;
 
   tools::ThreadSafeQueue<
-    std::tuple<cv::Mat, std::chrono::steady_clock::time_point, ov::InferRequest>>
+    std::tuple<cv::Mat, std::chrono::steady_clock::time_point, ov::InferRequest>,true>
     queue_{16, [] { tools::logger()->debug("[MultiThreadDetector] queue is full!"); }};
 };
 

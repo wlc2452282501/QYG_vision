@@ -131,6 +131,9 @@ void CBoard::send(Command command) const
   frame.data[6] = (int16_t)(command.horizon_distance * 1e4) >> 8;
   frame.data[7] = (int16_t)(command.horizon_distance * 1e4);
 
+  // tools::logger()->info("Sending: {} {} {} {} ", frame.data[2], frame.data[3], frame.data[4], frame.data[5]);
+
+
   write_can_frame(frame);
 }
 
@@ -183,10 +186,10 @@ void CBoard::callback(const can_frame & frame)
     auto y = ((int16_t)(frame.data[2] << 8 | frame.data[3]));
     auto z = ((int16_t)(frame.data[4] << 8 | frame.data[5]));
     auto w = ((int16_t)(frame.data[6] << 8 | frame.data[7]));
-    double x_d = static_cast<double>(uint_to_float(x, q_min, q_max, 14));
-    double y_d = static_cast<double>(uint_to_float(y, q_min, q_max, 14));
-    double z_d = static_cast<double>(uint_to_float(z, q_min, q_max, 14));
-    double w_d = static_cast<double>(uint_to_float(w, q_min, q_max, 14));
+    double x_d = static_cast<double>(uint_to_float(x, q_min, q_max, 16));
+    double y_d = static_cast<double>(uint_to_float(y, q_min, q_max, 16));
+    double z_d = static_cast<double>(uint_to_float(z, q_min, q_max, 16));
+    double w_d = static_cast<double>(uint_to_float(w, q_min, q_max, 16));
 
     if (std::abs(x_d * x_d + y_d * y_d + z_d * z_d + w_d * w_d - 1) > 1e-1) {
       tools::logger()->warn("Invalid q: {} {} {} {}", w_d, x_d, y_d, z_d);
@@ -216,7 +219,7 @@ void CBoard::callback(const can_frame & frame)
   //     last_log_time = now;
   //   }
   // }
-    bullet_speed = 100;
+    bullet_speed = 15;
     mode = Mode(1);
     shoot_mode = ShootMode(1);
     ft_angle = 0;

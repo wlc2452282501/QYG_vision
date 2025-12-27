@@ -1,6 +1,7 @@
 #include <fmt/format.h>
 
 #include "io/gimbal/gimbal.hpp"
+#include "io/cboard.hpp"
 #include "tools/exiter.hpp"
 #include "tools/img_tools.hpp"
 #include "tools/logger.hpp"
@@ -30,7 +31,8 @@ int main(int argc, char * argv[])
   tools::Exiter exiter;
 
   // 初始化云台
-  io::Gimbal gimbal(config_path);
+  // io::Gimbal gimbal(config_path);
+  io::CBoard cboard(config_path);
   io::VisionToGimbal plan;
   auto last_t = std::chrono::steady_clock::now();
   plan.yaw = 0;
@@ -42,7 +44,9 @@ int main(int argc, char * argv[])
 
   while (!exiter.exit()) {
     auto now = std::chrono::steady_clock::now();
-    auto gs = gimbal.state();
+    // auto gs = gimbal.state();
+    auto imu_q = cboard.imu_at(now);
+    // auto euler = tools::eulers(imu_q, 2, 1, 0);  // yaw pitch roll
     if(tools::delta_time(now, last_t) > 1.600) {
         plan.mode = 2;
         tools::logger()->debug("fire!");
@@ -50,7 +54,8 @@ int main(int argc, char * argv[])
     } else plan.mode = 1;
 
 
-    gimbal.send(plan);
+    // gimbal.send(plan);
+    cboard.send({true, plan.mode == 2, plan.yaw, plan.pitch, 0});
 
     // -------------- 调试输出 --------------
 

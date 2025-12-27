@@ -39,6 +39,7 @@ add_executable(uav src/uav.cpp)
 add_executable(uav_debug src/uav_debug.cpp)
 add_executable(QYG_hero src/QYG_hero.cpp)
 add_executable(QYG_hero_debug src/QYG_hero_debug.cpp)
+add_executable(QYG_hero_debug_QLF src/QYG_hero_debug_QLF.cpp)  # 新增可执行文件
 add_executable(QYG_sentry src/QYG_sentry.cpp)
 add_executable(QYG_sentry_debug src/QYG_sentry_debug.cpp)
 
@@ -53,6 +54,7 @@ target_link_libraries(uav ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_aim auto_buff to
 target_link_libraries(uav_debug ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_aim tools io)
 target_link_libraries(QYG_hero ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_aim auto_buff tools io)
 target_link_libraries(QYG_hero_debug ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_aim auto_buff tools io)
+target_link_libraries(QYG_hero_debug_QLF ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_aim auto_buff tools io)  # 新增可执行文件的链接
 target_link_libraries(QYG_sentry ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_aim auto_buff tools io)
 target_link_libraries(QYG_sentry_debug ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_aim auto_buff tools io)
 
@@ -64,7 +66,7 @@ add_executable(calibrate_handeye calibration/calibrate_handeye.cpp)
 add_executable(calibrate_robotworld_handeye calibration/calibrate_robotworld_handeye.cpp)
 add_executable(split_video calibration/split_video.cpp)
 add_executable(capture_multithread calibration/capture.cpp)
-add_executable(calibrate_camera_multithread  calibration/calibrate_camera.cpp)
+add_executable(calibrate_camera_multithread  calibration/calibrate_camera_multithread.cpp)
 add_executable(calibrate_handeye_multithread calibration/calibrate_handeye_multithread.cpp)
 
 target_link_libraries(capture ${OpenCV_LIBS} fmt::fmt tools io)
